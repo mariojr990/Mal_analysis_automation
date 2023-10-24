@@ -1,32 +1,42 @@
-#Insira sua API key na variavel virus_total_key
-virus_total_key = ""
-hash = "8b92c23b29422131acc150fa1ebac67e1b0b0f8cfc1b727805b842a88de447de"
-
+from decouple import config
 import tkinter as tk
 from tkinter import filedialog
 import hashlib
 import requests
+import pandas as pd
+
+
+virus_total_key = config('VIRUSTOTAL_API_KEY')
+hash = "8b92c23b29422131acc150fa1ebac67e1b0b0f8cfc1b727805b842a88de447de"
+
 
 def exibir_menu():
-    print("===== Menu Principal =====")
-    print("1. Full Report Virus Total.")
-    print("2. Opção 2")
-    print("3. Opção 3")
-    print("4. Sair")
+    print("""
+    ===== Menu Principal =====
+    1. Full Report Virus Total.
+    2. Opção 2
+    3. Opção 3
+    4. Sair
+    """)
 
+
+# ----- Opções do Menu -----
 def opcao1():
-    print("Você escolheu a Opção 1 :Report full VT")
+    print("Você escolheu a Opção 1: Report full VT\n")
     resultadovt = check_virustotal()
     print(resultadovt)
 
 
 def opcao2():
-    print("Você escolheu a Opção 2: hash do arquivo")
-    #obter_hash_md5()
+    print("Você escolheu a Opção 2: hash do arquivo\n")
+    obter_hash_md5()
     
 def opcao3():
-    print("Você escolheu a Opção 3")
+    print("Você escolheu a Opção 3\n")
+# --------------------------
 
+
+# Função para realizar a pesquisa na VirusTotal conforme Hash passada
 def check_virustotal():
     url = f"https://www.virustotal.com/api/v3/files/{hash}"
 
@@ -36,9 +46,23 @@ def check_virustotal():
     }
 
     response = requests.get(url, headers=headers)
+    # response.json()
+    arquivo_data = response.json()['data']['attributes']
+    # print(arquivo_data)
 
-    return response.json()
+    sandbox_verdicts = arquivo_data['data']['attributes']['sandbox_verdicts']
 
+    for sandbox, verdict in sandbox_verdicts.items():
+        print(f"Sandbox: {sandbox}")
+        print(f"Category: {verdict.get('category', 'N/A')}")
+        print(f"Confidence: {verdict.get('confidence', 'N/A')}")
+        print(f"Sandbox Name: {verdict.get('sandbox_name', 'N/A')}")
+        print(f"Malware Classification: {verdict.get('malware_classification', 'N/A')}")
+        print("\n")
+
+
+
+# Função para Obter hash de um arquivo selecionado
 def obter_hash_md5():
     def calcular_md5(arquivo):
         md5 = hashlib.md5()
@@ -71,24 +95,24 @@ def obter_hash_md5():
         print("Operação cancelada ou nenhum arquivo selecionado.")
 
 if __name__ == "__main__":
-    obter_hash_md5()
+    # obter_hash_md5()
 
 
 
 # Loop do menu
-while True:
-    exibir_menu()
-    
-    escolha = input("Digite o número da sua escolha: ")
+    while True:
+        exibir_menu()
+        
+        escolha = input("Digite o número da sua escolha: ")
 
-    if escolha == '1':
-        opcao1()
-    elif escolha == '2':
-        opcao2()
-    elif escolha == '3':
-        opcao3()
-    elif escolha == '4':
-        print("Saindo...")
-        break
-    else:
-        print("Opção inválida. Por favor, escolha novamente.")
+        if escolha == '1':
+            opcao1()
+        elif escolha == '2':
+            opcao2()
+        elif escolha == '3':
+            opcao3()
+        elif escolha == '4':
+            print("Saindo...")
+            break
+        else:
+            print("Opção inválida. Por favor, escolha novamente.")
